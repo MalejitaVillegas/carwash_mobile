@@ -1,6 +1,7 @@
 import 'package:carwash/screens/home/homeScreen.dart';
 import 'package:carwash/screens/notifications/notificationScreen.dart';
 import 'package:carwash/screens/profile/profileScreen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class Tabbar extends StatefulWidget {
@@ -10,6 +11,19 @@ class Tabbar extends StatefulWidget {
 
 class _TabbarState extends State<Tabbar> {
   int _currentIndex = 0;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      if (user == null) {
+        print('User is currently signed out!');
+      } else {
+        print('User is signed in!');
+      }
+    });
+  }
 
   // Lista de widgets que representan las páginas correspondientes a cada índice
   final List<Widget> _paginas = [
@@ -44,15 +58,6 @@ class _TabbarState extends State<Tabbar> {
           ),
         ],
       ),
-    );
-  }
-}
-
-class servicesScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text('Página de servicios'),
     );
   }
 }

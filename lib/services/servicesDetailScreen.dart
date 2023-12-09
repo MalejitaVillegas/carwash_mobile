@@ -1,6 +1,17 @@
+import 'package:carwash/screens/models/servicesModel.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
 class ServicesDetailScreen extends StatefulWidget {
+  final ServicesModel services;
+
+  ServicesDetailScreen({
+    super.key,
+    required this.services,
+  });
+
   @override
   _DetalleServicioScreenState createState() => _DetalleServicioScreenState();
 }
@@ -37,7 +48,7 @@ class _DetalleServicioScreenState extends State<ServicesDetailScreen> {
           fit: BoxFit.cover,
           width: double.infinity,
         ),
-        title: Text('Lavado general'),
+        title: Text(widget.services.title),
       ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
@@ -48,7 +59,7 @@ class _DetalleServicioScreenState extends State<ServicesDetailScreen> {
 
             // Imagen del Producto (Banner)
             Image.network(
-              'https://cmsresources.elempleo.com/co/assets/backend/styles/770x513/public/2023-09/autos%20(1)_0.jpg',
+              widget.services.photo,
               height: 200.0,
               fit: BoxFit.cover,
             ),
@@ -57,8 +68,7 @@ class _DetalleServicioScreenState extends State<ServicesDetailScreen> {
 
             // Descripción del Servicio
             Text(
-              'Descripción detallada del servicio de lavado general. '
-              'Incluye lavado exterior e interior, aspirado, y más.',
+              widget.services.description,
               style: TextStyle(fontSize: 16.0),
             ),
 
@@ -106,7 +116,7 @@ class _DetalleServicioScreenState extends State<ServicesDetailScreen> {
               width: double.infinity,
               alignment: Alignment.centerRight,
               child: Text(
-                'Valor: \$30.00',
+                'Valor: \$ ${widget.services.price}',
                 style: TextStyle(
                   fontSize: 18.0,
                   fontWeight: FontWeight.bold,
@@ -120,7 +130,7 @@ class _DetalleServicioScreenState extends State<ServicesDetailScreen> {
             ElevatedButton(
               onPressed: () {
                 // Mostrar modal de reserva
-                _mostrarModalReserva(context);
+                saveReserve(context);
               },
               child: Text('Reservar'),
             ),
@@ -128,6 +138,19 @@ class _DetalleServicioScreenState extends State<ServicesDetailScreen> {
         ),
       ),
     );
+  }
+
+  void saveReserve(BuildContext context) {
+    var uid = FirebaseAuth.instance.currentUser?.uid;
+    FirebaseFirestore.instance.collection("reserve").add({
+      'name': widget.services.title,
+      'price': widget.services.price,
+      'type': selectedVehicle,
+      'date': selectedDate,
+      'uid': uid,
+    }).then((value) {
+      _mostrarModalReserva(context);
+    });
   }
 
   // Método para mostrar el modal de reserva

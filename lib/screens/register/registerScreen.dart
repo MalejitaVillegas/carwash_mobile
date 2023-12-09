@@ -1,4 +1,7 @@
 import 'package:carwash/screens/login/loginScreen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import '../tabbar/tabbar.dart';
 
@@ -10,6 +13,44 @@ class registerScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<registerScreen> {
+  String _email = "";
+  String _psassword = "";
+  String _name = "";
+
+  Future<void> createUser(String emailAddress, String password) async {
+    try {
+      final credential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: emailAddress,
+        password: password,
+      );
+
+      var users = FirebaseFirestore.instance.collection("users");
+      users
+          .add({
+            'full_name': _name,
+            'email': _email,
+            'uid': credential.user?.uid ?? "",
+          })
+          .then((value) => // ignore: use_build_context_synchronously
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) {
+                  return Tabbar();
+                }),
+              ))
+          .catchError((error) => print("Failed to add user: $error"));
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'weak-password') {
+        print('The password provided is too weak.');
+      } else if (e.code == 'email-already-in-use') {
+        print('The account already exists for that email.');
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,42 +94,46 @@ class _RegisterScreenState extends State<registerScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const TextField(
-              decoration: InputDecoration(
+            TextField(
+              decoration: const InputDecoration(
                 labelText: 'Name',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(30)),
                 ),
               ),
+              onChanged: (data) {
+                _name = data;
+              },
             ),
             const SizedBox(height: 16.0),
-            const TextField(
-              decoration: InputDecoration(
+            TextField(
+              decoration: const InputDecoration(
                 labelText: 'Email',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(30)),
                 ),
               ),
+              onChanged: (data) {
+                _email = data;
+              },
             ),
             const SizedBox(height: 16.0),
-            const TextField(
-              decoration: InputDecoration(
+            TextField(
+              decoration: const InputDecoration(
                 labelText: 'Password',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(30)),
                 ),
               ),
+              onChanged: (data) {
+                _psassword = data;
+              },
               obscureText: true,
             ),
             const SizedBox(height: 24.0),
             ElevatedButton(
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) {
-                    return Tabbar();
-                  }),
-                );
+                createUser(_email, _psassword);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.indigo,

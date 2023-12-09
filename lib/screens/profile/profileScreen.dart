@@ -1,5 +1,8 @@
 import 'package:carwash/screens/login/loginScreen.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:permission_handler/permission_handler.dart';
 
 class profileScreen extends StatefulWidget {
   const profileScreen({super.key});
@@ -9,6 +12,38 @@ class profileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<profileScreen> {
+  late ImagePicker _imagePicker;
+  late XFile _imageFile; // Para almacenar la imagen seleccionada
+
+  @override
+  void initState() {
+    super.initState();
+    _imagePicker = ImagePicker();
+    _imageFile = XFile('');
+  }
+
+  // Método para seleccionar una imagen de la galería
+  Future<void> _selectImage() async {
+    await _requestGalleryPermission();
+    final XFile? pickedFile =
+        await _imagePicker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = pickedFile;
+      });
+    }
+  }
+
+  // Función para solicitar permisos de galería
+  Future<void> _requestGalleryPermission() async {
+    var status = await Permission.photos.status;
+
+    if (status.isDenied) {
+      // Solicitar permisos
+      await Permission.photos.request();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,10 +60,13 @@ class _ProfileScreenState extends State<profileScreen> {
           children: [
             // Avatar
             SizedBox(height: 60),
-            CircleAvatar(
-              radius: 50.0,
-              backgroundImage: AssetImage(
-                  'assets/avatar.jpg'), // Reemplaza con la ruta de tu imagen
+            InkWell(
+              onTap: _selectImage,
+              child: CircleAvatar(
+                  radius: 50.0,
+                  backgroundImage:
+                      _getImageProvider() // Imagen predeterminada si no hay ninguna seleccionada
+                  ),
             ),
             SizedBox(height: 16.0),
 
@@ -69,6 +107,14 @@ class _ProfileScreenState extends State<profileScreen> {
         ),
       ),
     );
+  }
+
+  ImageProvider<Object>? _getImageProvider() {
+    if (_imageFile.path.isNotEmpty) {
+      return FileImage(File(_imageFile.path));
+    } else {
+      return AssetImage('assets/default_avatar.jpg');
+    }
   }
 
   Widget _buildListItem(IconData icon, String title, VoidCallback onTap) {

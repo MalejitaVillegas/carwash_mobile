@@ -1,11 +1,11 @@
+import 'package:carwash/screens/models/servicesModel.dart';
 import 'package:carwash/services/servicesDetailScreen.dart';
 import 'package:flutter/material.dart';
 
-class GridItem extends StatelessWidget {
-  final String serviceName;
-  final String backgroundImageUrl;
+class GridItemService extends StatelessWidget {
+  final ServicesModel services;
 
-  GridItem({required this.serviceName, required this.backgroundImageUrl});
+  GridItemService({required this.services});
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +13,8 @@ class GridItem extends StatelessWidget {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => ServicesDetailScreen()),
+          MaterialPageRoute(
+              builder: (context) => ServicesDetailScreen(services: services)),
         );
       },
       child: Card(
@@ -22,7 +23,7 @@ class GridItem extends StatelessWidget {
           children: [
             // Imagen de fondo
             Image.network(
-              backgroundImageUrl,
+              services.photo,
               fit: BoxFit.cover,
             ),
             Container(
@@ -32,7 +33,7 @@ class GridItem extends StatelessWidget {
             // Texto en el centro
             Center(
               child: Text(
-                serviceName,
+                services.title,
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 18.0,

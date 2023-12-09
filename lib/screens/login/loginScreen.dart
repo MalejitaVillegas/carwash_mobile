@@ -1,5 +1,6 @@
 import 'package:carwash/screens/register/registerScreen.dart';
 import 'package:carwash/screens/tabbar/tabbar.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -10,6 +11,15 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  String _email = "";
+  String _password = "";
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,35 +63,36 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const TextField(
-              decoration: InputDecoration(
+            TextField(
+              decoration: const InputDecoration(
                 labelText: 'Email',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(30)),
                 ),
               ),
+              onChanged: (value) {
+                _email = value;
+              },
             ),
             const SizedBox(height: 16.0),
-            const TextField(
-              decoration: InputDecoration(
+            TextField(
+              decoration: const InputDecoration(
                 labelText: 'Password',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(30)),
                 ),
               ),
               obscureText: true,
+              onChanged: (value) {
+                _password = value;
+              },
             ),
             const SizedBox(height: 24.0),
             const Text('FORGOT PASSWORD'),
             const SizedBox(height: 24.0),
             ElevatedButton(
               onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) {
-                    return Tabbar();
-                  }),
-                );
+                actionLogin(context);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.indigo,
@@ -91,7 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 minimumSize: const Size(double.infinity, 50.0),
               ),
               child: const Text(
-                'LOG IN',
+                'LOGIN',
                 style: TextStyle(
                   fontSize: 18.0,
                   fontWeight: FontWeight.bold,
@@ -158,5 +169,26 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> actionLogin(BuildContext context) async {
+    try {
+      final credential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(email: _email, password: _password);
+
+      // ignore: use_build_context_synchronously
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) {
+          return Tabbar();
+        }),
+      );
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        print('No user found for that email.');
+      } else if (e.code == 'wrong-password') {
+        print('Wrong password provided for that user.');
+      }
+    }
   }
 }
