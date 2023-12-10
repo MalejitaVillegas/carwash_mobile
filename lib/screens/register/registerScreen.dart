@@ -25,6 +25,8 @@ class _RegisterScreenState extends State<registerScreen> {
         password: password,
       );
 
+      User? user = FirebaseAuth.instance.currentUser;
+      await user?.updateDisplayName(_name);
       var users = FirebaseFirestore.instance.collection("users");
       users
           .add({
@@ -54,6 +56,7 @@ class _RegisterScreenState extends State<registerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: Stack(
           children: [
@@ -143,7 +146,7 @@ class _RegisterScreenState extends State<registerScreen> {
                 minimumSize: const Size(double.infinity, 50.0),
               ),
               child: const Text(
-                'SIGN IN',
+                'SIGN UP',
                 style: TextStyle(
                   fontSize: 18.0,
                   fontWeight: FontWeight.bold,
@@ -167,7 +170,7 @@ class _RegisterScreenState extends State<registerScreen> {
                   ),
                   children: <TextSpan>[
                     TextSpan(
-                      text: 'SIGN IN',
+                      text: 'LOGIN',
                       style: TextStyle(
                         color: Colors.indigo,
                         fontSize: 16.0,

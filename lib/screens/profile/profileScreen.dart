@@ -1,4 +1,5 @@
 import 'package:carwash/screens/login/loginScreen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -72,13 +73,13 @@ class _ProfileScreenState extends State<profileScreen> {
 
             // Información del Usuario (puedes personalizar según tus necesidades)
             Text(
-              'Nombre de Usuario',
-              style: TextStyle(
+              FirebaseAuth.instance.currentUser?.displayName ?? "",
+              style: const TextStyle(
                 fontSize: 20.0,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            Text('usuario@example.com'),
+            Text(FirebaseAuth.instance.currentUser?.email ?? ""),
 
             SizedBox(height: 32.0),
 
@@ -90,12 +91,15 @@ class _ProfileScreenState extends State<profileScreen> {
                       context, 'Notificaciones', 'Lista de notificaciones.');
                 }),
                 _buildListItem(Icons.exit_to_app, 'Cerrar Sesión', () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) {
-                      return LoginScreen();
-                    }),
-                  );
+                  FirebaseAuth.instance
+                      .signOut()
+                      .then((value) => Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) {
+                              return LoginScreen();
+                            }),
+                          ));
+                  ;
                 }),
                 _buildListItem(Icons.delete, 'Borrar la Cuenta', () {
                   _mostrarModal(context, 'Borrar la Cuenta',

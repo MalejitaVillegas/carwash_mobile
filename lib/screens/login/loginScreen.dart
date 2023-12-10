@@ -23,6 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: Stack(
           children: [
@@ -88,7 +89,7 @@ class _LoginScreenState extends State<LoginScreen> {
               },
             ),
             const SizedBox(height: 24.0),
-            const Text('FORGOT PASSWORD'),
+            // const Text('FORGOT PASSWORD'),
             const SizedBox(height: 24.0),
             ElevatedButton(
               onPressed: () {
@@ -110,32 +111,32 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
             const SizedBox(height: 24.0),
-            const Text('OR LOG IN BY'),
-            const SizedBox(height: 24.0),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(
-                      builder: (context) {
-                        return Tabbar();
-                      },
-                    ));
-                  },
-                  icon: const Icon(Icons.facebook),
-                ),
-                IconButton(
-                  onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) {
-                      return Tabbar();
-                    }));
-                  },
-                  icon: const Icon(Icons.g_mobiledata),
-                ),
-              ],
-            ),
+            // const Text('OR LOG IN BY'),
+            // const SizedBox(height: 24.0),
+            // Row(
+            //   mainAxisAlignment: MainAxisAlignment.center,
+            //   children: [
+            //     IconButton(
+            //       onPressed: () {
+            //         Navigator.push(context, MaterialPageRoute(
+            //           builder: (context) {
+            //             return Tabbar();
+            //           },
+            //         ));
+            //       },
+            //       icon: const Icon(Icons.facebook),
+            //     ),
+            //     IconButton(
+            //       onPressed: () {
+            //         Navigator.push(context,
+            //             MaterialPageRoute(builder: (context) {
+            //           return Tabbar();
+            //         }));
+            //       },
+            //       icon: const Icon(Icons.g_mobiledata),
+            //     ),
+            //   ],
+            // ),
             GestureDetector(
               onTap: () {
                 Navigator.push(
@@ -186,9 +187,32 @@ class _LoginScreenState extends State<LoginScreen> {
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
         print('No user found for that email.');
+        _showAlertDialog(context, "Usuario no encontrado");
       } else if (e.code == 'wrong-password') {
         print('Wrong password provided for that user.');
+        _showAlertDialog(context, "Wrong password provided for that user.");
       }
+      _showAlertDialog(context, e.code);
     }
+  }
+
+  void _showAlertDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Error'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the alert dialog
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

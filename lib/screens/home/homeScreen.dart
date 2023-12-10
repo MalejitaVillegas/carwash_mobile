@@ -2,6 +2,7 @@ import 'package:carwash/screens/cards/servicesCard.dart';
 import 'package:carwash/screens/models/reserveModel.dart';
 import 'package:carwash/screens/models/servicesModel.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -76,7 +77,7 @@ class _homeScreenState extends State<homeScreen> {
           CircleAvatar(
             radius: 40,
           ),
-          Text("Sammuel Ramos"),
+          Text(FirebaseAuth.instance.currentUser?.email ?? ""),
           Text("Colombias")
         ],
       ),
