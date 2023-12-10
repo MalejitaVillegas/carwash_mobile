@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:carwash/screens/cards/servicesCard.dart';
 import 'package:carwash/screens/models/reserveModel.dart';
 import 'package:carwash/screens/models/servicesModel.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 class homeScreen extends StatefulWidget {
@@ -14,10 +17,12 @@ class homeScreen extends StatefulWidget {
 class _homeScreenState extends State<homeScreen> {
   List<ServicesModel> _services = [];
   List<ReserveModel> _reserves = [];
+  late XFile _imageFile;
 
   @override
   void initState() {
     super.initState();
+    _imageFile = XFile('');
     Future.delayed(Duration.zero, () async {
       _services = await retriveServices();
       _reserves = await retriveReserve();
@@ -71,17 +76,31 @@ class _homeScreenState extends State<homeScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          SizedBox(
+          const SizedBox(
             height: 140,
           ),
           CircleAvatar(
-            radius: 40,
+              radius: 50.0,
+              backgroundImage:
+                  _getImageProvider() // Imagen predeterminada si no hay ninguna seleccionada
+              ),
+          const SizedBox(
+            height: 10,
           ),
           Text(FirebaseAuth.instance.currentUser?.email ?? ""),
           Text("Colombias")
         ],
       ),
     );
+  }
+
+  ImageProvider<Object>? _getImageProvider() {
+    if (_imageFile.path.isNotEmpty) {
+      return FileImage(File(_imageFile.path));
+    } else {
+      String? photoURL = FirebaseAuth.instance.currentUser?.photoURL;
+      return photoURL != null ? NetworkImage(photoURL) : null;
+    }
   }
 
   Widget myServices() {

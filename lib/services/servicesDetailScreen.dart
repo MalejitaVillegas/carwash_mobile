@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class ServicesDetailScreen extends StatefulWidget {
   final ServicesModel services;
@@ -55,6 +56,9 @@ class _DetalleServicioScreenState extends State<ServicesDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    String formattedDateTime =
+        DateFormat('yyyy-MM-dd HH:mm:ss').format(selectedDate);
+
     return Scaffold(
       appBar: AppBar(
         flexibleSpace: Image.asset(
@@ -114,7 +118,7 @@ class _DetalleServicioScreenState extends State<ServicesDetailScreen> {
                 children: [
                   Text('Fecha de Reserva'),
                   Text(
-                    "${selectedDate.toLocal()}".split(' ')[0],
+                    "${formattedDateTime}",
                     style: TextStyle(
                       fontSize: 16.0,
                       fontWeight: FontWeight.bold,

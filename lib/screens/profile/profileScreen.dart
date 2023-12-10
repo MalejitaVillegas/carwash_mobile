@@ -1,5 +1,6 @@
 import 'package:carwash/screens/login/loginScreen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -13,13 +14,15 @@ class profileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<profileScreen> {
-  late ImagePicker _imagePicker;
+  final ImagePicker _imagePicker = ImagePicker();
   late XFile _imageFile; // Para almacenar la imagen seleccionada
+
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
 
   @override
   void initState() {
     super.initState();
-    _imagePicker = ImagePicker();
     _imageFile = XFile('');
   }
 
@@ -32,6 +35,7 @@ class _ProfileScreenState extends State<profileScreen> {
       setState(() {
         _imageFile = pickedFile;
       });
+      _uploadImage();
     }
   }
 
@@ -117,7 +121,8 @@ class _ProfileScreenState extends State<profileScreen> {
     if (_imageFile.path.isNotEmpty) {
       return FileImage(File(_imageFile.path));
     } else {
-      return AssetImage('assets/default_avatar.jpg');
+      String? photoURL = FirebaseAuth.instance.currentUser?.photoURL;
+      return photoURL != null ? NetworkImage(photoURL) : null;
     }
   }
 
@@ -147,5 +152,31 @@ class _ProfileScreenState extends State<profileScreen> {
         );
       },
     );
+  }
+
+  Future<void> _uploadImage() async {
+    if (_auth.currentUser == null) {
+      // No hay usuario autenticado
+      return;
+    }
+
+    try {
+      final String userId = _auth.currentUser!.uid;
+
+      // Sube la imagen a Firebase Storage
+      final Reference storageRef =
+          _storage.ref().child('user_images/$userId.jpg');
+      await storageRef.putFile(File(_imageFile.path));
+      final String imageUrl = await storageRef.getDownloadURL();
+      await _auth.currentUser!.updatePhotoURL(imageUrl);
+      await _auth.currentUser!.reload();
+      await _auth.currentUser!.getIdToken(true);
+
+      // Muestra un mensaje de éxito
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Imagen subida con éxito')));
+    } catch (error) {
+      print('Error al subir la imagen: $error');
+    }
   }
 }

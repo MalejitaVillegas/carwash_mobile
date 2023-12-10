@@ -1,4 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class NotificationScreen extends StatefulWidget {
   @override
@@ -6,19 +8,24 @@ class NotificationScreen extends StatefulWidget {
 }
 
 class _NotificacionesScreenState extends State<NotificationScreen> {
-  List<Notificacion> notificaciones = [
-    Notificacion(
-      titulo: 'Nuevo mensaje',
-      descripcion: 'Tienes un nuevo mensaje de prueba.',
-      hora: DateTime.now(),
-    ),
-    Notificacion(
-      titulo: 'Recordatorio',
-      descripcion: 'Recuerda realizar la reserva.',
-      hora: DateTime.now().subtract(Duration(minutes: 30)),
-    ),
-    // Puedes agregar más notificaciones según sea necesario
-  ];
+  List<Notificacion> _notificaciones = [];
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(Duration.zero, () async {
+      _notificaciones = await retriveNotifications();
+      setState(() {});
+    });
+  }
+
+  Future<List<Notificacion>> retriveNotifications() async {
+    QuerySnapshot<Map<String, dynamic>> snapshot =
+        await FirebaseFirestore.instance.collection("notifications").get();
+    return snapshot.docs
+        .map((docSnapshot) => Notificacion.fromDocumentSnapshot(docSnapshot))
+        .toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,10 +41,14 @@ class _NotificacionesScreenState extends State<NotificationScreen> {
       body: Container(
         padding: EdgeInsets.only(top: 16),
         child: ListView.builder(
-          itemCount: notificaciones.length,
+          itemCount: _notificaciones.length,
           itemBuilder: (context, index) {
+            DateTime dateTime = _notificaciones[index].hora.toDate();
+
+            String formattedHour = DateFormat('HH:mm').format(dateTime);
+
             return Dismissible(
-              key: Key(notificaciones[index].hora.toString()),
+              key: Key(_notificaciones[index].hora.toString()),
               background: Container(
                 color: Colors.red,
                 child: Icon(Icons.delete, color: Colors.white),
@@ -47,7 +58,7 @@ class _NotificacionesScreenState extends State<NotificationScreen> {
               onDismissed: (direction) {
                 // Eliminar la notificación al deslizar
                 setState(() {
-                  notificaciones.removeAt(index);
+                  _notificaciones.removeAt(index);
                 });
                 // Mostrar un snackbar para confirmar la eliminación
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -58,7 +69,7 @@ class _NotificacionesScreenState extends State<NotificationScreen> {
                       onPressed: () {
                         setState(() {
                           // Si el usuario deshace, restaura la notificación
-                          notificaciones.insert(index, notificaciones[index]);
+                          _notificaciones.insert(index, _notificaciones[index]);
                         });
                       },
                     ),
@@ -66,14 +77,14 @@ class _NotificacionesScreenState extends State<NotificationScreen> {
                 );
               },
               child: ListTile(
-                title: Text(notificaciones[index].titulo),
+                title: Text(_notificaciones[index].titulo),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(notificaciones[index].descripcion),
-                    SizedBox(height: 4.0),
+                    Text(_notificaciones[index].descripcion),
+                    const SizedBox(height: 4.0),
                     Text(
-                      'Hora: ${notificaciones[index].hora.hour}:${notificaciones[index].hora.minute}',
+                      'Hora: $formattedHour',
                       style: TextStyle(color: Colors.grey),
                     ),
                   ],
@@ -91,11 +102,16 @@ class _NotificacionesScreenState extends State<NotificationScreen> {
 class Notificacion {
   final String titulo;
   final String descripcion;
-  final DateTime hora;
+  final hora;
 
   Notificacion({
     required this.titulo,
     required this.descripcion,
     required this.hora,
   });
+
+  Notificacion.fromDocumentSnapshot(DocumentSnapshot<Map<String, dynamic>> doc)
+      : titulo = doc.data()!["title"],
+        descripcion = doc.data()!["description"],
+        hora = doc.data()!["date"];
 }
